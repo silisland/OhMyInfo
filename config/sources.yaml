@@ -1,0 +1,91 @@
+# =============================================================================
+# OhMyInfo — 数据源配置文件
+# =============================================================================
+# 本文件定义 OhMyInfo 采集层的数据来源。
+# 用户可按需启用/禁用数据源、调整采集频率和优先级。
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# 默认值锚（YAML anchors），供各数据源复用
+# ---------------------------------------------------------------------------
+_default_source: &default_source
+  enabled: true              # 是否启用
+  type: api                  # 数据源类型: api / scrape / rss
+  interval_minutes: 360      # 采集间隔（分钟），默认 6 小时
+  top_count: 10              # 每个源最多保留条目数
+
+_api_source: &api_source
+  <<: *default_source
+  type: api
+
+_scrape_source: &scrape_source
+  <<: *default_source
+  type: scrape
+
+_rss_source: &rss_source
+  <<: *default_source
+  type: rss
+
+# ---------------------------------------------------------------------------
+# 数据源定义
+# ---------------------------------------------------------------------------
+sources:
+
+  # ---- Hacker News（技术社区热度风向标）------------------------------------
+  hacker_news:
+    <<: *api_source
+    url: "https://hacker-news.firebaseio.com/v0/"
+    top_count: 30             # 从最新/最佳中取前 30 条
+    interval_minutes: 360     # 每 6 小时采集一次
+    priority: 1               # 优先级 1（最高），核心数据源
+
+  # ---- GitHub Trending（开源项目趋势）-------------------------------------
+  github_trending:
+    <<: *scrape_source
+    url: "https://github.com/trending"
+    since: "daily"            # 时间范围: daily / weekly / monthly
+    top_count: 15
+    interval_minutes: 360
+    priority: 1
+
+  # ---- Reddit（社区讨论深度内容）------------------------------------------
+  reddit:
+    <<: *api_source
+    subreddits:               # 关注的子版块列表
+      - "MachineLearning"
+      - "programming"
+      - "artificial"
+      - "LocalLLaMA"
+    min_upvotes: 100          # 最低点赞数，过滤低质内容
+    top_count: 10
+    interval_minutes: 360
+    priority: 2               # 优先级 2（中）
+
+  # ---- arXiv（最新学术论文）------------------------------------------------
+  arxiv:
+    <<: *rss_source
+    categories:               # arXiv 分类
+      - "cs.AI"               # 人工智能
+      - "cs.LG"               # 机器学习
+      - "cs.CL"               # 计算语言学 / NLP
+    top_count: 10
+    interval_minutes: 720     # 每 12 小时采集（论文更新频率较低）
+    priority: 2
+
+  # ---- Dev.to（开发者博客/技术文章）-----------------------------------------
+  devto:
+    <<: *api_source
+    url: "https://dev.to/api/articles"
+    top_count: 15
+    interval_minutes: 360
+    priority: 2
+
+  # ---- 预留：可在此处添加更多数据源 ----------------------------------------
+  # example_source:
+  #   <<: *api_source
+  #   url: "https://api.example.com/v1/posts"
+  #   top_count: 10
+  #   interval_minutes: 360
+  #   priority: 3
+  #   headers:
+  #     Authorization: "Bearer ${API_TOKEN}"
