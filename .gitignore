@@ -144,7 +144,6 @@ core
 vgcore.*
 
 # Devcontainer (keep template, ignore local configs)
-.devcontainer/
 
 # Environment overrides
 .env.local
