@@ -134,7 +134,12 @@ def parse_trending_page(html: str) -> list[dict[str, Any]]:
         if m := _HREF_RE.search(block):
             repo["name"] = m.group(1)
         else:
-            continue  # skip malformed entries
+            continue
+
+        # Skip non-repo entries (sponsors, login, search, etc.)
+        name = repo["name"]
+        if "/" not in name or "?" in name or name.count("/") != 1:
+            continue
 
         # Description from <p>...</p>
         if m := _P_RE.search(block):

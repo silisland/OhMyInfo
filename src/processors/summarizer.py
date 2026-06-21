@@ -28,6 +28,7 @@ from src.processors._providers import (
     _AbstractProvider,
     _GeminiProvider,
     _OpenAIProvider,
+    _OpenRouterProvider,
     _ProviderError,
     _RateLimitError,
     _TimeoutError,
@@ -42,10 +43,12 @@ logger = logging.getLogger(__name__)
 _DEFAULT_MODELS: Final[dict[str, str]] = {
     "openai": "gpt-4o-mini",
     "gemini": "gemini-2.0-flash",
+    "openrouter": "google/gemma-4-31b",
 }
 _ENV_VAR_MAP: Final[dict[str, str]] = {
     "openai": "OPENAI_API_KEY",
     "gemini": "GEMINI_API_KEY",
+    "openrouter": "OPENROUTER_API_KEY",
 }
 _MAX_RETRIES: Final[int] = 3
 _FALLBACK_MAX_CHARS: Final[int] = 200
@@ -65,7 +68,8 @@ class Summarizer:
     """AI-powered summarization and translation for articles.
 
     Args:
-        provider: LLM provider name — ``"gemini"`` (default) or ``"openai"``.
+        provider: LLM provider name — ``"openrouter"`` (recommended),
+            ``"gemini"``, or ``"openai"``.
         model:   Model name override.  Falls back to the per-provider default
                  (gemini-2.0-flash / gpt-4o-mini) when *None*.
         api_key: API key for the chosen provider.  Falls back to the
@@ -76,7 +80,8 @@ class Summarizer:
         cache_dir: Optional directory for persistent summary cache.
 
     Raises:
-        ValueError: When *provider* is not ``"openai"`` or ``"gemini"``.
+        ValueError: When *provider* is not ``"openai"``, ``"gemini"``, or
+            ``"openrouter"``.
     """
 
     def __init__(
@@ -86,7 +91,7 @@ class Summarizer:
         api_key: str | None = None,
         cache_dir: str | Path | None = None,
     ) -> None:
-        supported = {"openai", "gemini"}
+        supported = {"openai", "gemini", "openrouter"}
         if provider not in supported:
             msg = f"Unsupported provider: {provider!r}. Choose from {sorted(supported)}."
             raise ValueError(msg)
@@ -104,6 +109,10 @@ class Summarizer:
                     )
                 case "gemini":
                     self._llm = _GeminiProvider(
+                        api_key=resolved_key, model=self._model
+                    )
+                case "openrouter":
+                    self._llm = _OpenRouterProvider(
                         api_key=resolved_key, model=self._model
                     )
                 case unreachable:  # pragma: no cover

@@ -23,7 +23,7 @@ import httpx
 
 from src.collectors import Article, Collector, CollectorError
 
-_ARXIV_API = "http://export.arxiv.org/api/query"
+_ARXIV_API = "https://export.arxiv.org/api/query"
 _DEFAULT_CATEGORIES = ("cs.AI", "cs.LG", "cs.CL")
 
 

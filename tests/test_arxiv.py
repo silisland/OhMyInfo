@@ -121,7 +121,7 @@ class TestArxivCollector:
     ) -> None:
         """Fetch from one category returns one article."""
         httpx_mock.add_response(
-            url="http://export.arxiv.org/api/query?search_query=cat:cs.AI&max_results=10&sortBy=submittedDate&sortOrder=descending",
+            url="https://export.arxiv.org/api/query?search_query=cat:cs.AI&max_results=10&sortBy=submittedDate&sortOrder=descending",
             text=SINGLE_ENTRY_ATOM,
         )
 
@@ -143,7 +143,7 @@ class TestArxivCollector:
     async def test_fetch_multiple_entries(self, httpx_mock: HTTPXMock) -> None:
         """Fetch returns all entries from the feed."""
         httpx_mock.add_response(
-            url="http://export.arxiv.org/api/query?search_query=cat:cs.CL&max_results=10&sortBy=submittedDate&sortOrder=descending",
+            url="https://export.arxiv.org/api/query?search_query=cat:cs.CL&max_results=10&sortBy=submittedDate&sortOrder=descending",
             text=MULTI_ENTRY_ATOM,
         )
 
@@ -159,11 +159,11 @@ class TestArxivCollector:
     async def test_fetch_multiple_categories(self, httpx_mock: HTTPXMock) -> None:
         """Fetch across multiple categories aggregates articles."""
         httpx_mock.add_response(
-            url="http://export.arxiv.org/api/query?search_query=cat:cs.AI&max_results=10&sortBy=submittedDate&sortOrder=descending",
+            url="https://export.arxiv.org/api/query?search_query=cat:cs.AI&max_results=10&sortBy=submittedDate&sortOrder=descending",
             text=SINGLE_ENTRY_ATOM,
         )
         httpx_mock.add_response(
-            url="http://export.arxiv.org/api/query?search_query=cat:cs.LG&max_results=10&sortBy=submittedDate&sortOrder=descending",
+            url="https://export.arxiv.org/api/query?search_query=cat:cs.LG&max_results=10&sortBy=submittedDate&sortOrder=descending",
             text=MULTI_ENTRY_ATOM,
         )
 
@@ -176,7 +176,7 @@ class TestArxivCollector:
     async def test_empty_results(self, httpx_mock: HTTPXMock) -> None:
         """Empty feed returns empty list."""
         httpx_mock.add_response(
-            url="http://export.arxiv.org/api/query?search_query=cat:cs.AI&max_results=10&sortBy=submittedDate&sortOrder=descending",
+            url="https://export.arxiv.org/api/query?search_query=cat:cs.AI&max_results=10&sortBy=submittedDate&sortOrder=descending",
             text=EMPTY_FEED_ATOM,
         )
 
@@ -195,7 +195,7 @@ class TestArxivCollector:
     async def test_http_error_raises_collector_error(self, httpx_mock: HTTPXMock) -> None:
         """HTTP 5xx raises CollectorError."""
         httpx_mock.add_response(
-            url="http://export.arxiv.org/api/query?search_query=cat:cs.AI&max_results=10&sortBy=submittedDate&sortOrder=descending",
+            url="https://export.arxiv.org/api/query?search_query=cat:cs.AI&max_results=10&sortBy=submittedDate&sortOrder=descending",
             status_code=503,
         )
 
@@ -212,7 +212,7 @@ class TestArxivCollector:
     ) -> None:
         """Malformed XML with no entries raises CollectorError."""
         httpx_mock.add_response(
-            url="http://export.arxiv.org/api/query?search_query=cat:cs.AI&max_results=10&sortBy=submittedDate&sortOrder=descending",
+            url="https://export.arxiv.org/api/query?search_query=cat:cs.AI&max_results=10&sortBy=submittedDate&sortOrder=descending",
             text=MALFORMED_XML,
         )
 
@@ -224,11 +224,11 @@ class TestArxivCollector:
     async def test_partial_failure_all_fail(self, httpx_mock: HTTPXMock) -> None:
         """When all categories fail, CollectorError is raised."""
         httpx_mock.add_response(
-            url="http://export.arxiv.org/api/query?search_query=cat:cs.AI&max_results=10&sortBy=submittedDate&sortOrder=descending",
+            url="https://export.arxiv.org/api/query?search_query=cat:cs.AI&max_results=10&sortBy=submittedDate&sortOrder=descending",
             status_code=500,
         )
         httpx_mock.add_response(
-            url="http://export.arxiv.org/api/query?search_query=cat:cs.LG&max_results=10&sortBy=submittedDate&sortOrder=descending",
+            url="https://export.arxiv.org/api/query?search_query=cat:cs.LG&max_results=10&sortBy=submittedDate&sortOrder=descending",
             status_code=500,
         )
 
@@ -242,15 +242,15 @@ class TestArxivCollector:
     async def test_default_categories(self, httpx_mock: HTTPXMock) -> None:
         """Default categories (cs.AI, cs.LG, cs.CL) are used when none specified."""
         httpx_mock.add_response(
-            url="http://export.arxiv.org/api/query?search_query=cat:cs.AI&max_results=10&sortBy=submittedDate&sortOrder=descending",
+            url="https://export.arxiv.org/api/query?search_query=cat:cs.AI&max_results=10&sortBy=submittedDate&sortOrder=descending",
             text=EMPTY_FEED_ATOM,
         )
         httpx_mock.add_response(
-            url="http://export.arxiv.org/api/query?search_query=cat:cs.LG&max_results=10&sortBy=submittedDate&sortOrder=descending",
+            url="https://export.arxiv.org/api/query?search_query=cat:cs.LG&max_results=10&sortBy=submittedDate&sortOrder=descending",
             text=EMPTY_FEED_ATOM,
         )
         httpx_mock.add_response(
-            url="http://export.arxiv.org/api/query?search_query=cat:cs.CL&max_results=10&sortBy=submittedDate&sortOrder=descending",
+            url="https://export.arxiv.org/api/query?search_query=cat:cs.CL&max_results=10&sortBy=submittedDate&sortOrder=descending",
             text=EMPTY_FEED_ATOM,
         )
 
@@ -265,7 +265,7 @@ class TestArxivCollector:
         """Network-level errors (connection refused, DNS failure) raise CollectorError."""
         httpx_mock.add_exception(
             httpx.ConnectError("Connection refused"),
-            url="http://export.arxiv.org/api/query?search_query=cat:cs.AI&max_results=10&sortBy=submittedDate&sortOrder=descending",
+            url="https://export.arxiv.org/api/query?search_query=cat:cs.AI&max_results=10&sortBy=submittedDate&sortOrder=descending",
         )
 
         collector = ArxivCollector(categories=["cs.AI"], max_results=10)
@@ -293,7 +293,7 @@ class TestArxivCollector:
     async def test_custom_max_results(self, httpx_mock: HTTPXMock) -> None:
         """Custom max_results is reflected in the API URL."""
         httpx_mock.add_response(
-            url="http://export.arxiv.org/api/query?search_query=cat:cs.AI&max_results=5&sortBy=submittedDate&sortOrder=descending",
+            url="https://export.arxiv.org/api/query?search_query=cat:cs.AI&max_results=5&sortBy=submittedDate&sortOrder=descending",
             text=SINGLE_ENTRY_ATOM,
         )
 
@@ -322,7 +322,7 @@ class TestArxivCollector:
   </entry>
 </feed>"""
         httpx_mock.add_response(
-            url="http://export.arxiv.org/api/query?search_query=cat:cs.AI&max_results=10&sortBy=submittedDate&sortOrder=descending",
+            url="https://export.arxiv.org/api/query?search_query=cat:cs.AI&max_results=10&sortBy=submittedDate&sortOrder=descending",
             text=atom,
         )
 

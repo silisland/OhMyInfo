@@ -17,7 +17,7 @@ _default_provider: &default_provider
 # ---------------------------------------------------------------------------
 llm:
   # 默认 Provider，当具体任务未指定时回退至此
-  default_provider: "openai"   # openai / gemini / anthropic / deepseek / ollama
+  default_provider: "openrouter"   # openai / gemini / openrouter / anthropic / deepseek / ollama
 
   # ---- 模型提供商定义 -----------------------------------------------------
   providers:
@@ -41,6 +41,18 @@ llm:
       <<: *default_provider
       api_key_env: ""           # 本地部署无需 API Key
 
+    # OpenRouter（统一 API 网关，支持 100+ 模型）
+    # 提供大量免费模型，适合低成本入门
+    # 免费模型列表: https://openrouter.ai/models?order=newest&free=1
+    openrouter:
+      model: "google/gemma-4-31b"   # 免费模型，速度快
+      base_url: "https://openrouter.ai/api/v1"
+      <<: *default_provider
+      api_key_env: "OPENROUTER_API_KEY"
+      extra_headers:
+        HTTP-Referer: "https://github.com/silisland/OhMyInfo"
+        X-Title: "OhMyInfo"
+
     # ---- 预留 Provider（取消注释即可启用）----------------------------------
     # anthropic:
     #   model: "claude-sonnet-4-20250514"
@@ -55,30 +67,30 @@ llm:
   # ---- 任务级模型配置 -----------------------------------------------------
   # 每个任务可指定不同的 Provider 和模型，实现"最佳工具做最佳事"
   tasks:
-    # 文章评分：要求一致性高、成本低
+    # 文章评分：使用 OpenRouter 免费模型，零成本运行
     scoring:
-      provider: "openai"
-      model: "gpt-4o-mini"
+      provider: "openrouter"
+      model: "google/gemma-4-31b"
       prompt_template: >
         Score this article 0-10 based on technical depth,
         novelty, and relevance to developers.
         Article title: {title}
         Summary: {summary}
 
-    # 中文摘要：Gemini Flash 性价比高且中文能力强
+    # 中文摘要：OpenRouter 免费模型
     summarization:
-      provider: "gemini"
-      model: "gemini-2.0-flash"
+      provider: "openrouter"
+      model: "google/gemma-4-31b"
       prompt_template: >
         用中文总结以下技术文章的要点（2-3句话）：
         {title}
 
         {content}
 
-    # 英译中：与摘要共用 Gemini Flash
+    # 英译中：与摘要共用 OpenRouter
     translation:
-      provider: "gemini"
-      model: "gemini-2.0-flash"
+      provider: "openrouter"
+      model: "google/gemma-4-31b"
       prompt_template: >
         将以下英文技术内容翻译为中文：
         {content}

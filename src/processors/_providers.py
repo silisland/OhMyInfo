@@ -85,6 +85,53 @@ class _OpenAIProvider(_AbstractProvider):
 
 
 # ---------------------------------------------------------------------------
+# OpenRouter — fully OpenAI-compatible, custom base_url
+# ---------------------------------------------------------------------------
+
+
+class _OpenRouterProvider(_AbstractProvider):
+    """OpenRouter provider — uses the OpenAI SDK with a custom ``base_url``.
+
+    OpenRouter is a unified API gateway for 100+ LLMs.  Its API is identical
+    to OpenAI's chat-completion format, so we reuse ``openai.AsyncOpenAI``
+    with ``base_url`` pointed at ``https://openrouter.ai/api/v1``.
+
+    See https://openrouter.ai/docs for available models and pricing.
+    """
+
+    OPENROUTER_BASE_URL: Final[str] = "https://openrouter.ai/api/v1"
+
+    def __init__(self, api_key: str, model: str = "gpt-4o-mini") -> None:
+        self._client = openai.AsyncOpenAI(
+            api_key=api_key,
+            base_url=self.OPENROUTER_BASE_URL,
+            timeout=30.0,
+        )
+        self._model = model
+
+    async def generate(self, prompt: str) -> str:
+        try:
+            response = await self._client.chat.completions.create(
+                model=self._model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3,
+                max_tokens=500,
+                # Recommended by OpenRouter for dashboard attribution
+                extra_headers={
+                    "HTTP-Referer": "https://github.com/silisland/OhMyInfo",
+                    "X-Title": "OhMyInfo",
+                },
+            )
+        except openai.RateLimitError as exc:
+            raise _RateLimitError(str(exc)) from exc
+        except (openai.APITimeoutError, asyncio.TimeoutError) as exc:
+            raise _TimeoutError(str(exc)) from exc
+
+        msg = response.choices[0].message
+        return msg.content or ""
+
+
+# ---------------------------------------------------------------------------
 # Gemini
 # ---------------------------------------------------------------------------
 
