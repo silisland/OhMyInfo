@@ -1,0 +1,35 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>OhMyInfo · 关注领域管理</title><link rel="stylesheet" href="styles.css"></head><body>
+<div class="header"><div class="header-inner"><div class="header-title">🔭 OhMyInfo</div><div class="header-nav"><a href="./index.html">📰 日报</a><a href="./preferences.html">🎯 关注领域</a></div></div></div>
+<div class="container">
+<div class="section"><div class="section-title">📌 我的关注领域</div><div class="card"><div id="tag-container" class="tags" style="margin-bottom:0.75rem"></div><input id="tag-input" class="input" type="text" placeholder="输入关注的技术领域，如 Obsidian、Rust... 按回车添加" autocomplete="off"><div style="margin-top:0.5rem;font-size:0.8rem;color:var(--text-tertiary)">已添加 <span id="tag-count">0</span>/20 个关注领域</div></div></div>
+<div class="section"><div class="section-title">🎯 快速添加</div><div class="card">
+<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.75rem">AI / ML</div><div class="tags" style="margin-bottom:1rem"><span class="tag tag-suggest" onclick="addTag('AI')">AI</span><span class="tag tag-suggest" onclick="addTag('Machine Learning')">Machine Learning</span><span class="tag tag-suggest" onclick="addTag('LLM')">LLM</span><span class="tag tag-suggest" onclick="addTag('Deep Learning')">Deep Learning</span><span class="tag tag-suggest" onclick="addTag('NLP')">NLP</span></div>
+<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.75rem">编程语言</div><div class="tags" style="margin-bottom:1rem"><span class="tag tag-suggest" onclick="addTag('Rust')">Rust</span><span class="tag tag-suggest" onclick="addTag('Python')">Python</span><span class="tag tag-suggest" onclick="addTag('TypeScript')">TypeScript</span><span class="tag tag-suggest" onclick="addTag('Go')">Go</span><span class="tag tag-suggest" onclick="addTag('WebAssembly')">WebAssembly</span></div>
+<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.75rem">基础设施</div><div class="tags" style="margin-bottom:1rem"><span class="tag tag-suggest" onclick="addTag('Database')">Database</span><span class="tag tag-suggest" onclick="addTag('DevOps')">DevOps</span><span class="tag tag-suggest" onclick="addTag('Cloud Native')">Cloud Native</span><span class="tag tag-suggest" onclick="addTag('Kubernetes')">Kubernetes</span><span class="tag tag-suggest" onclick="addTag('Security')">Security</span></div>
+<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.75rem">其他</div><div class="tags"><span class="tag tag-suggest" onclick="addTag('Open Source')">Open Source</span><span class="tag tag-suggest" onclick="addTag('Edge Computing')">Edge Computing</span><span class="tag tag-suggest" onclick="addTag('Blockchain')">Blockchain</span><span class="tag tag-suggest" onclick="addTag('IoT')">IoT</span></div>
+</div></div>
+<div class="section"><div class="section-title">📡 采集影响预览</div><div class="card" id="impact-preview">
+<div class="impact-item"><span class="impact-source">GitHub Search</span><span class="impact-action" id="impact-github">等待添加关注领域...</span></div>
+<div class="impact-item"><span class="impact-source">Reddit Search</span><span class="impact-action" id="impact-reddit">等待添加关注领域...</span></div>
+<div class="impact-item"><span class="impact-source">Hacker News</span><span class="impact-action" id="impact-hn">等待添加关注领域...</span></div>
+<div class="impact-item"><span class="impact-source">arXiv</span><span class="impact-action" id="impact-arxiv">等待添加关注领域...</span></div>
+<div class="impact-item"><span class="impact-source">Dev.to</span><span class="impact-action" id="impact-devto">等待添加关注领域...</span></div>
+</div></div>
+<div class="section" style="display:flex;gap:0.75rem;flex-wrap:wrap"><button class="btn btn-primary" onclick="savePreferences()">💾 保存到本地</button><button class="btn" onclick="exportYaml()">📋 导出 YAML 配置</button><button class="btn" onclick="clearAll()">🗑️ 清空全部</button></div>
+<div style="margin:3rem 0;padding:1rem;background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-md);font-size:0.8rem;color:var(--text-secondary);line-height:1.8"><strong>💡 使用提示：</strong><br>1. 添加你感兴趣的技术领域关键词<br>2. 点击「导出 YAML 配置」复制配置内容<br>3. 粘贴到项目的 config/preferences.yaml 文件中<br>4. 运行 Pipeline 后，系统会自动聚焦你关注的领域</div>
+</div>
+<div id="toast" class="toast"></div>
+<script>
+let tags=[];function loadTags(){try{const s=localStorage.getItem('ohmyinfo_interests');if(s){tags=JSON.parse(s);render()}}catch(e){tags=[]}}
+function saveTags(){localStorage.setItem('ohmyinfo_interests',JSON.stringify(tags))}
+function render(){document.getElementById('tag-container').innerHTML=tags.map(t=>'<span class="tag">'+t+'<span class="tag-remove" onclick=removeTag("'+t+'")>×</span></span>').join('');document.getElementById('tag-count').textContent=tags.length;updateImpact()}
+function addTag(t){t=t.trim();if(!t)return;if(tags.length>=20){showToast('最多 20 个');return}if(tags.includes(t)){showToast('已存在');return}tags.push(t);render();saveTags();document.getElementById('tag-input').value=''}
+function removeTag(t){tags=tags.filter(i=>i!==t);render();saveTags()}
+function clearAll(){tags=[];render();saveTags();showToast('已清空')}
+function savePreferences(){saveTags();showToast('✅ 已保存')}
+function exportYaml(){const y='preferences:\n  interests:\n    include_keywords:\n'+tags.map(t=>'      - "'+t+'"').join('\n');navigator.clipboard.writeText(y).then(()=>showToast('📋 已复制 YAML')).catch(()=>{const ta=document.createElement('textarea');ta.value=y;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('📋 已复制 YAML')})}
+function updateImpact(){const s=['impact-github','impact-reddit','impact-hn','impact-arxiv','impact-devto'];const a=tags.length>0?['将搜索 "'+tags[0]+'" 的相关仓库','将搜索 "'+tags[0]+'" 的相关讨论','将筛选含 "'+tags[0]+'" 的帖子','将搜索 "'+tags[0]+'" 的相关论文','将匹配 "'+tags[0]+'" 标签的文章']:['等待...','等待...','等待...','等待...','等待...'];s.forEach((id,i)=>document.getElementById(id).textContent=a[i])}
+function showToast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2000)}
+document.addEventListener('DOMContentLoaded',()=>{loadTags();document.getElementById('tag-input').addEventListener('keydown',e=>{if(e.key==='Enter')addTag(e.target.value)})});
+</script>
+</body></html>
